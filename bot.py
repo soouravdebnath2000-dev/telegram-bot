@@ -37,7 +37,8 @@ motivation_list = [
 spiritual_list = [
     "🕉️ Jo tum dhoond rahe ho, wo tumhare andar hai",
     "🙏 Shanti mann se aati hai, duniya se nahi",
-    "✨ Sab kuch samay par hota hai"
+    "✨ Sab kuch samay par hota hai",
+    "🌿 Bhagwan par bharosa rakho, sab theek hoga"
 ]
 
 # =========================
@@ -61,7 +62,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "🤖 Commands:\n/start\n/help\n/users\n\nTry:\nhello\ntime\ndate\ncoins\nearn\njoke\nmotivation\nspiritual\nmy name is Abhi"
+        "🤖 Commands:\n/start\n/help\n/users\n\nTry:\nhello\ntime\ndate\ncoins\nearn\njoke\nmotivation\nspiritual\nshayari\nlove you\nmy name is Abhi"
     )
 
 # =========================
@@ -72,27 +73,13 @@ async def users_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"👥 Total users: {len(users)}")
 
 # =========================
-# 🔹 LANGUAGE DETECT
-# =========================
-
-def detect_language(text):
-    text = text.lower()
-
-    if any(x in text for x in ["ki korcho", "kemon", "bhalo", "tumi", "amar"]):
-        return "bn"
-    elif any(x in text for x in ["kya", "kaise", "tum", "mera"]):
-        return "hi"
-    else:
-        return "en"
-
-# =========================
 # 🔹 INTENT DETECT
 # =========================
 
 def detect_intent(text):
     text = text.lower()
 
-    if any(x in text for x in ["hello", "hi", "hey", "namaste", "nomoskar"]):
+    if any(x in text for x in ["hello", "hi", "hey", "namaste"]):
         return "greet"
 
     if "time" in text:
@@ -107,120 +94,129 @@ def detect_intent(text):
     if "earn" in text:
         return "earn"
 
-    if any(x in text for x in ["name", "naam", "nam"]):
+    if any(x in text for x in ["name", "naam"]):
         return "name"
 
-    if any(x in text for x in ["joke", "funny", "maja"]):
+    if any(x in text for x in ["joke", "funny"]):
         return "joke"
 
-    if any(x in text for x in ["motivate", "motivation", "inspire"]):
+    if any(x in text for x in ["motivation", "inspire"]):
         return "motivation"
 
-    if any(x in text for x in ["bhagwan", "god", "krishna", "ram"]):
+    if any(x in text for x in ["bhagwan", "god"]):
         return "spiritual"
 
     return "chat"
 
 # =========================
-# 🔹 REPLY SYSTEM
+# 🔹 REPLY SYSTEM (FINAL 🔥)
 # =========================
 
 def get_reply(text, user_id):
+    text_lower = text.lower()
     intent = detect_intent(text)
-    lang = detect_language(text)
     name = names.get(user_id, "")
 
-    text_lower = text.lower()
+    # ❤️ LOVE
+    if "love you" in text_lower:
+        return random.choice([
+            f"Love you too {name} ❤️" if name else "Love you too ❤️",
+            "Aree ❤️ itna pyaar 😄",
+            "Dil jeet liya tumne ❤️🔥"
+        ])
 
-    # GREET (improved)
-    if intent == "greet":
+    # ✍️ SHAYARI
+    elif "shayari" in text_lower:
+        return random.choice([
+            "💫 Zindagi ek kahani hai,\nHar pal ek nayi nishani hai…",
+            "❤️ Dil se jo baat nikalti hai,\nWo hi asli shayari hoti hai…",
+            "🌙 Raat bhi kya khoob hai,\nTeri yaadon ke saath mehfooz hai…"
+        ])
+
+    # 👋 GREET
+    elif intent == "greet":
         return random.choice([
             f"Hello {name} 😄 kaise ho?" if name else "Hello 😄 kaise ho?",
             f"Namaste {name} 🙏 kya help chahiye?" if name else "Namaste 🙏 kya help chahiye?",
             "Hey 🔥 kya chal raha hai?"
         ])
 
-    # HOW ARE YOU
-    if "how are you" in text_lower or "kaise ho" in text_lower:
-        return f"Main theek hu {name} 😄 tum batao?" if name else "Main mast hu 😄 tum batao?"
+    # 😊 HOW ARE YOU
+    elif "kaise ho" in text_lower:
+        return random.choice([
+            f"Main mast hu {name} 😄 tum batao?" if name else "Main mast hu 😄 tum batao?",
+            "Sab badhiya 😎 tum sunao?",
+            "Zindagi chal rahi hai 🔥 tum batao?"
+        ])
 
-    # BOT INTRO (NEW 🔥)
-    if "tum kya kar sakte ho" in text_lower or "what can you do" in text_lower:
+    # 🤖 BOT INTRO
+    elif "tum kya kar sakte ho" in text_lower:
         return """🤖 Main ek smart bot hu:
 
-✔ Time / Date bata sakta hu  
+✔ Time / Date  
 ✔ Jokes 😄  
 ✔ Motivation 🚀  
 ✔ Spiritual baate 🕉️  
-✔ Tumhara naam yaad rakh sakta hu  
+✔ Shayari ✍️  
+✔ Naam yaad rakh sakta hu  
 
 Aur bhi seekh raha hu 🔥"""
 
-    # TIME
+    # ⏰ TIME
     elif intent == "time":
         return "⏰ " + datetime.now(india).strftime("%H:%M:%S")
 
-    # DATE
+    # 📅 DATE
     elif intent == "date":
         return "📅 " + datetime.now(india).strftime("%d-%m-%Y")
 
-    # COINS
+    # 💰 COINS
     elif intent == "coins":
         return f"💰 {name}, coins: {coins.get(user_id, 0)}" if name else f"💰 Coins: {coins.get(user_id, 0)}"
 
-    # EARN
+    # 💸 EARN
     elif intent == "earn":
         return f"💸 Earn coins:\nhttps://t.me/YOUR_BOT?start={user_id}"
 
-    # NAME SAVE (FIXED 🔥)
-    elif "my name is" in text_lower or "mera naam" in text_lower or "amar nam" in text_lower:
-        name_input = text_lower.replace("my name is", "").replace("mera naam", "").replace("amar nam", "").replace("hai","").strip()
+    # 🧠 NAME SAVE
+    elif "my name is" in text_lower or "mera naam" in text_lower:
+        name_input = text_lower.replace("my name is", "").replace("mera naam", "").replace("hai","").strip()
         if name_input:
             names[user_id] = name_input
             return f"Nice to meet you {name_input} 😄"
 
-    # NAME CHECK
+    # 🧠 NAME CHECK
     elif intent == "name":
-        return names.get(user_id, "Tumne naam nahi bataya 🤔")
+        return names.get(user_id, "Naam nahi bataya 🤔")
 
-    # JOKE
+    # 😂 JOKE
     elif intent == "joke":
         return random.choice(jokes_list)
 
-    # MOTIVATION
+    # 🚀 MOTIVATION
     elif intent == "motivation":
         return random.choice(motivation_list)
 
-    # SPIRITUAL
+    # 🕉️ SPIRITUAL
     elif intent == "spiritual":
         return random.choice(spiritual_list)
 
-    # SMART DEFAULT (BIG FIX 🔥)
+    # 🔥 DEFAULT
     else:
-        return f"""🤖 Samajhne ki koshish kar raha hu...
+        return random.choice([
+            "🤖 Samajhne ki koshish kar raha hu… thoda aur bolo 🔥",
+            "Interesting 😄 aur batao",
+            "Try karo: joke / motivation / shayari 😎",
+            "Main seekh raha hu 😄"
+        ])
 
-Tum ye try karo:
-👉 joke  
-👉 motivation  
-👉 time  
-👉 apna naam batao  
-
-(Main seekh raha hu 🔥)"""
-]===========
+# =========================
 # 🔹 TYPING EFFECT
 # =========================
 
 async def send_typing(update):
     await update.message.chat.send_action(action=ChatAction.TYPING)
     await asyncio.sleep(random.uniform(1, 2.5))
-
-# =========================
-# 🔹 SAVE CHAT
-# =========================
-
-def save_chat(user_id, user_text, bot_reply):
-    with open("chat_log.txt", "a") as f:
-        f.write(f"{user_id} | You: {user_text} | Bot: {bot_reply}\n")
 
 # =========================
 # 🔹 HANDLE MESSAGE
@@ -231,7 +227,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users.add(user_id)
 
-    # anti spam
     now = datetime.now().timestamp()
     if user_id in last_msg and now - last_msg[user_id] < 1.5:
         return
@@ -242,8 +237,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_typing(update)
 
     reply = get_reply(user_text, user_id)
-
-    save_chat(user_id, user_text, reply)
 
     await update.message.reply_text(reply)
 
