@@ -130,18 +130,31 @@ def get_reply(text, user_id):
     lang = detect_language(text)
     name = names.get(user_id, "")
 
-    # GREET
+    text_lower = text.lower()
+
+    # GREET (improved)
     if intent == "greet":
-        if lang == "bn":
-            return f"Nomoskar {name} 😊" if name else "Nomoskar 😊"
-        elif lang == "hi":
-            return f"Namaste {name} 🙏" if name else "Namaste 🙏"
-        else:
-            return f"Hello {name} 😄" if name else "Hello 😄"
+        return random.choice([
+            f"Hello {name} 😄 kaise ho?" if name else "Hello 😄 kaise ho?",
+            f"Namaste {name} 🙏 kya help chahiye?" if name else "Namaste 🙏 kya help chahiye?",
+            "Hey 🔥 kya chal raha hai?"
+        ])
 
     # HOW ARE YOU
-    if "how are you" in text.lower() or "kaise ho" in text.lower():
+    if "how are you" in text_lower or "kaise ho" in text_lower:
         return f"Main theek hu {name} 😄 tum batao?" if name else "Main mast hu 😄 tum batao?"
+
+    # BOT INTRO (NEW 🔥)
+    if "tum kya kar sakte ho" in text_lower or "what can you do" in text_lower:
+        return """🤖 Main ek smart bot hu:
+
+✔ Time / Date bata sakta hu  
+✔ Jokes 😄  
+✔ Motivation 🚀  
+✔ Spiritual baate 🕉️  
+✔ Tumhara naam yaad rakh sakta hu  
+
+Aur bhi seekh raha hu 🔥"""
 
     # TIME
     elif intent == "time":
@@ -159,16 +172,16 @@ def get_reply(text, user_id):
     elif intent == "earn":
         return f"💸 Earn coins:\nhttps://t.me/YOUR_BOT?start={user_id}"
 
-    # NAME SAVE
-    elif "my name is" in text or "mera naam" in text or "amar nam" in text:
-        name_input = text.lower().replace("my name is", "").replace("mera naam", "").replace("amar nam", "").strip()
+    # NAME SAVE (FIXED 🔥)
+    elif "my name is" in text_lower or "mera naam" in text_lower or "amar nam" in text_lower:
+        name_input = text_lower.replace("my name is", "").replace("mera naam", "").replace("amar nam", "").replace("hai","").strip()
         if name_input:
             names[user_id] = name_input
             return f"Nice to meet you {name_input} 😄"
 
     # NAME CHECK
     elif intent == "name":
-        return names.get(user_id, "Naam nahi bataya 🤔")
+        return names.get(user_id, "Tumne naam nahi bataya 🤔")
 
     # JOKE
     elif intent == "joke":
@@ -182,28 +195,18 @@ def get_reply(text, user_id):
     elif intent == "spiritual":
         return random.choice(spiritual_list)
 
-    # DEFAULT CHAT
+    # SMART DEFAULT (BIG FIX 🔥)
     else:
-        if lang == "bn":
-            return random.choice([
-                "Bujhte parchi na 🤔 aro bolo",
-                "Valo 😊 kotha bolo",
-                "Interesting 🔥"
-            ])
-        elif lang == "hi":
-            return random.choice([
-                "Samajh nahi aaya 🤔 thoda aur bolo",
-                "Acha 😄 aur batao",
-                "Interesting 🔥"
-            ])
-        else:
-            return random.choice([
-                "I didn't get it 🤔 say more",
-                "Interesting 😄 tell more",
-                "Nice 🔥"
-            ])
+        return f"""🤖 Samajhne ki koshish kar raha hu...
 
-# =========================
+Tum ye try karo:
+👉 joke  
+👉 motivation  
+👉 time  
+👉 apna naam batao  
+
+(Main seekh raha hu 🔥)"""
+]===========
 # 🔹 TYPING EFFECT
 # =========================
 
