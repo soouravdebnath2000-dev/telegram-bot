@@ -1,117 +1,247 @@
 import os
 import random
+import asyncio
 from datetime import datetime
 import pytz
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.constants import ChatAction
 
-# 🔑 TOKEN
 TOKEN = os.getenv("TOKEN")
 
-# 🧠 DATA STORAGE
+# 🧠 DATA
 users = set()
 coins = {}
 names = {}
+last_msg = {}
 
-# 🌍 TIMEZONE
 india = pytz.timezone("Asia/Kolkata")
 
 # =========================
-# 🔹 BASIC COMMANDS
+# 🔹 EXTRA DATA
+# =========================
+
+jokes_list = [
+    "😂 Coding itni ki zindagi bhi compile nahi ho rahi",
+    "🤣 Doctor: Tumhe kya problem hai?\nPatient: Paisa nahi hai 😭",
+    "😄 Network gaya = life gaya"
+]
+
+motivation_list = [
+    "🔥 Mehnat kabhi bekaar nahi jaati",
+    "🚀 Aaj seekhoge, kal jeetoge",
+    "💪 Discipline = Power"
+]
+
+spiritual_list = [
+    "🕉️ Jo tum dhoond rahe ho, wo tumhare andar hai",
+    "🙏 Shanti mann se aati hai, duniya se nahi",
+    "✨ Sab kuch samay par hota hai"
+]
+
+# =========================
+# 🔹 START
 # =========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     users.add(user_id)
 
-    # 💰 init coins
     if user_id not in coins:
-        coins[user_id] = 0
-
-    # 🎯 referral system
-    if context.args:
-        try:
-            ref_id = int(context.args[0])
-            if ref_id != user_id:
-                coins[ref_id] = coins.get(ref_id, 0) + 5
-        except:
-            pass
+        coins[user_id] = 10
 
     await update.message.reply_text(
-        f"👋 Welcome!\nCoins: {coins[user_id]} 💰\nType 'earn' to earn coins"
+        f"👋 Welcome!\n💰 Coins: {coins[user_id]}\n\nType anything to chat 😄"
     )
 
+# =========================
+# 🔹 HELP
+# =========================
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "/start\n/help\n\nTry:\nhello\ntime\ndate\ncoins\nearn"
+        "🤖 Commands:\n/start\n/help\n/users\n\nTry:\nhello\ntime\ndate\ncoins\nearn\njoke\nmotivation\nspiritual\nmy name is Abhi"
     )
 
 # =========================
-# 🔹 MAIN CHAT LOGIC
+# 🔹 USERS COUNT
+# =========================
+
+async def users_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"👥 Total users: {len(users)}")
+
+# =========================
+# 🔹 LANGUAGE DETECT
+# =========================
+
+def detect_language(text):
+    text = text.lower()
+
+    if any(x in text for x in ["ki korcho", "kemon", "bhalo", "tumi", "amar"]):
+        return "bn"
+    elif any(x in text for x in ["kya", "kaise", "tum", "mera"]):
+        return "hi"
+    else:
+        return "en"
+
+# =========================
+# 🔹 INTENT DETECT
+# =========================
+
+def detect_intent(text):
+    text = text.lower()
+
+    if any(x in text for x in ["hello", "hi", "hey", "namaste", "nomoskar"]):
+        return "greet"
+
+    if "time" in text:
+        return "time"
+
+    if "date" in text:
+        return "date"
+
+    if "coin" in text:
+        return "coins"
+
+    if "earn" in text:
+        return "earn"
+
+    if any(x in text for x in ["name", "naam", "nam"]):
+        return "name"
+
+    if any(x in text for x in ["joke", "funny", "maja"]):
+        return "joke"
+
+    if any(x in text for x in ["motivate", "motivation", "inspire"]):
+        return "motivation"
+
+    if any(x in text for x in ["bhagwan", "god", "krishna", "ram"]):
+        return "spiritual"
+
+    return "chat"
+
+# =========================
+# 🔹 REPLY SYSTEM
 # =========================
 
 def get_reply(text, user_id):
-    text = text.lower()
+    intent = detect_intent(text)
+    lang = detect_language(text)
+    name = names.get(user_id, "")
 
-    # 🌍 MULTI LANGUAGE
-    if any(x in text for x in ["hi", "hello", "hey", "namaste", "nomoskar"]):
-        return random.choice(["Hello 😄", "Namaste 🙏", "Nomoskar 😊"])
+    # GREET
+    if intent == "greet":
+        if lang == "bn":
+            return f"Nomoskar {name} 😊" if name else "Nomoskar 😊"
+        elif lang == "hi":
+            return f"Namaste {name} 🙏" if name else "Namaste 🙏"
+        else:
+            return f"Hello {name} 😄" if name else "Hello 😄"
 
-    elif any(x in text for x in ["kaise ho", "how are you", "kemon acho"]):
-        return random.choice(["Main mast hu 😎", "Bhalo achi 😄"])
+    # HOW ARE YOU
+    if "how are you" in text.lower() or "kaise ho" in text.lower():
+        return f"Main theek hu {name} 😄 tum batao?" if name else "Main mast hu 😄 tum batao?"
 
-    # ⏰ TIME
-    elif "time" in text:
-        return "⏰ " + datetime.now(india).strftime("%H:%M")
+    # TIME
+    elif intent == "time":
+        return "⏰ " + datetime.now(india).strftime("%H:%M:%S")
 
-    # 📅 DATE
-    elif "date" in text:
+    # DATE
+    elif intent == "date":
         return "📅 " + datetime.now(india).strftime("%d-%m-%Y")
 
-    # 💰 COINS
-    elif "coins" in text:
-        return f"💰 Coins: {coins.get(user_id, 0)}"
+    # COINS
+    elif intent == "coins":
+        return f"💰 {name}, coins: {coins.get(user_id, 0)}" if name else f"💰 Coins: {coins.get(user_id, 0)}"
 
-    # 💸 EARN
-    elif "earn" in text:
-        return f"Referral link:\nhttps://t.me/darkcoder_abhi_bot?start={user_id}"
+    # EARN
+    elif intent == "earn":
+        return f"💸 Earn coins:\nhttps://t.me/YOUR_BOT?start={user_id}"
 
-    # 🧠 NAME SAVE
-    elif "mera naam" in text or "my name" in text or "amar nam" in text:
-        name = text.replace("mera naam", "").replace("my name", "").replace("amar nam", "").strip()
-        if name:
-            names[user_id] = name
-            return f"Nice to meet you {name} 😄"
+    # NAME SAVE
+    elif "my name is" in text or "mera naam" in text or "amar nam" in text:
+        name_input = text.lower().replace("my name is", "").replace("mera naam", "").replace("amar nam", "").strip()
+        if name_input:
+            names[user_id] = name_input
+            return f"Nice to meet you {name_input} 😄"
+
+    # NAME CHECK
+    elif intent == "name":
+        return names.get(user_id, "Naam nahi bataya 🤔")
+
+    # JOKE
+    elif intent == "joke":
+        return random.choice(jokes_list)
+
+    # MOTIVATION
+    elif intent == "motivation":
+        return random.choice(motivation_list)
+
+    # SPIRITUAL
+    elif intent == "spiritual":
+        return random.choice(spiritual_list)
+
+    # DEFAULT CHAT
+    else:
+        if lang == "bn":
+            return random.choice([
+                "Bujhte parchi na 🤔 aro bolo",
+                "Valo 😊 kotha bolo",
+                "Interesting 🔥"
+            ])
+        elif lang == "hi":
+            return random.choice([
+                "Samajh nahi aaya 🤔 thoda aur bolo",
+                "Acha 😄 aur batao",
+                "Interesting 🔥"
+            ])
         else:
-            return "Apna naam batao 😄"
-
-    # 🧠 NAME CHECK
-    elif "mera naam kya" in text or "my name" in text:
-        return names.get(user_id, "Tumne naam nahi bataya 🤔")
-
-    # 📊 USERS
-    elif "kitne log" in text:
-        return f"{len(users)} users use kar rahe hain 😎"
-
-    # 🤖 DEFAULT
-    return random.choice([
-        "Samajh nahi aaya 🤔",
-        "Acha 😄",
-        "Nice 😎",
-        "Aur bolo 🔥"
-    ])
+            return random.choice([
+                "I didn't get it 🤔 say more",
+                "Interesting 😄 tell more",
+                "Nice 🔥"
+            ])
 
 # =========================
-# 🔹 MESSAGE HANDLER
+# 🔹 TYPING EFFECT
+# =========================
+
+async def send_typing(update):
+    await update.message.chat.send_action(action=ChatAction.TYPING)
+    await asyncio.sleep(random.uniform(1, 2.5))
+
+# =========================
+# 🔹 SAVE CHAT
+# =========================
+
+def save_chat(user_id, user_text, bot_reply):
+    with open("chat_log.txt", "a") as f:
+        f.write(f"{user_id} | You: {user_text} | Bot: {bot_reply}\n")
+
+# =========================
+# 🔹 HANDLE MESSAGE
 # =========================
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     user_id = update.effective_user.id
+    users.add(user_id)
+
+    # anti spam
+    now = datetime.now().timestamp()
+    if user_id in last_msg and now - last_msg[user_id] < 1.5:
+        return
+    last_msg[user_id] = now
+
+    coins[user_id] = coins.get(user_id, 0) + 1
+
+    await send_typing(update)
 
     reply = get_reply(user_text, user_id)
+
+    save_chat(user_id, user_text, reply)
+
     await update.message.reply_text(reply)
 
 # =========================
@@ -123,9 +253,10 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("users", users_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("🔥 Bot Running...")
+    print("🔥 PRO BOT RUNNING...")
     app.run_polling()
 
 if __name__ == "__main__":
