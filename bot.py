@@ -1,10 +1,11 @@
-# ===== PART 1: BASE SYSTEM =====
+# ===== PART 1: B
 
+import os
 import telebot
 import time
 import random
 
-TOKEN = "8715453613:AAH-exdCVPtYFbdmWbobu7Du8C-AA5Q18p0"
+TOKEN = os.getenv("TOKEN")
 
 bot = telebot.TeleBot(TOKEN)
 
