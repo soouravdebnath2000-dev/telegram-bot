@@ -4,6 +4,7 @@ import os
 import telebot
 import time
 import random
+import math
 
 TOKEN = os.getenv("TOKEN")
 
@@ -801,7 +802,6 @@ def handle(msg):
 
     else:
         typing(chat_id,"🤖 Unknown command\nType /help")
-
 
 print("🔥 FINAL BOT RUNNING...")
 bot.infinity_polling()
