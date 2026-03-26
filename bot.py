@@ -1,599 +1,806 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
-import asyncio, random, os
+# ===== PART 1: BASE SYSTEM =====
 
-TOKEN = os.getenv("TOKEN")
+import telebot
+import time
+import random
 
-user_mode = {}
+TOKEN = "8715453613:AAH-exdCVPtYFbdmWbobu7Du8C-AA5Q18p0"
+
+bot = telebot.TeleBot(TOKEN)
+
 memory = {}
 
-# ===== typing effect =====
-async def send(update, text):
-    await update.message.chat.send_action(action="typing")
-    await asyncio.sleep(0.4)
-    await update.message.reply_text(text)
+# ===== TYPING EFFECT =====
+def typing(chat_id, text):
+    bot.send_chat_action(chat_id, "typing")
+    time.sleep(1)
+    bot.send_message(chat_id, text)
 
-# ===== START MENU =====
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await send(update,
-    "🔥 MENU 🔥\n\n"
-    "1 Chat 💬\n"
-    "2 Calculator 🔢\n"
-    "3 Daily Life 🧠\n"
-    "4 Health 💪\n"
-    "5 Study 📚\n"
-    "6 Earning 💰\n"
-    "7 YouTube 🎬\n"
-    "8 Editing ✂️\n\n"
-    "👉 number bhejo")
+# ===== START =====
+@bot.message_handler(commands=['start'])
+def start(msg):
+    typing(msg.chat.id, "🔥 Welcome Gurudev\nType /help")
 
-# ===== CHAT SYSTEM (FULL SAME LOGIC) =====
-async def chat_system(update, text, uid):
+# ===== HELP =====
+@bot.message_handler(commands=['help'])
+def help_cmd(msg):
+    typing(msg.chat.id,
+    "📌 Commands:\n"
+    "/chat - Smart Chat\n"
+    "/calc - Calculator\n"
+    "/daily - Daily Life\n"
+    "/fitness - Health\n"
+    "/study - Study Help\n"
+    "/earn - Online Earning\n"
+    "/youtube - Growth\n"
+    "/edit - Editing System"
+    )
 
+# ===== CHAT SYSTEM =====
+@bot.message_handler(commands=['chat'])
+def chat_start(msg):
+    typing(msg.chat.id, "💬 Chat Mode ON\nType anything...")
+
+# ===== MAIN MESSAGE HANDLER =====
+@bot.message_handler(func=lambda message: True)
+def handle(msg):
+    text = msg.text.lower()
+    chat_id = msg.chat.id
+
+    # ===== CHAT LOGIC =====
+    if text in ["hi", "hello", "hey"]:
+        typing(chat_id, "hello 😎")
+
+    elif "my name" in text:
+        name = text.replace("my name", "").strip()
+        memory[chat_id] = {"name": name}
+        typing(chat_id, f"hello {name}")
+
+    elif text == "what is my name":
+        name = memory.get(chat_id, {}).get("name", "unknown")
+        typing(chat_id, f"your name is {name}")
+
+    elif text in ["how are you", "kaise ho", "kemon acho"]:
+        typing(chat_id, "fine and you 😄")
+
+    elif text in ["bye", "tata", "tc"]:
+        typing(chat_id, "bye friend 👋")
+
+    elif "help" in text:
+        replies = ["kya chahiye 🤔", "bolo kya problem", "kaise help karu"]
+        typing(chat_id, random.choice(replies))
+
+    else:
+        replies = [
+            "samajh nahi aaya 😅",
+            "simple bolo 😎",
+            "thoda clear karo 🤔"
+        ]
+        typing(chat_id, random.choice(replies))
+
+
+# ===== RUN =====
+print("BOT RUNNING...")
+bot.infinity_polling()
+
+# ===== PART 2: CALCULATOR SYSTEM =====
+
+def calc_menu():
+    return (
+        "🧮 Calculator Commands:\n"
+        "/add 5 6\n"
+        "/sub 10 3\n"
+        "/mul 4 5\n"
+        "/div 10 2\n"
+        "/square 5\n"
+        "/cube 3\n"
+        "/power 2 5\n"
+        "/mod 10 3\n"
+        "/even 8\n"
+        "/percent 200 10\n"
+    )
+
+@bot.message_handler(commands=['calc'])
+def calc_start(msg):
+    typing(msg.chat.id, calc_menu())
+
+
+# ===== ADD =====
+@bot.message_handler(commands=['add'])
+def add_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        result = int(a) + int(b)
+        typing(msg.chat.id, f"Add = {result}")
+    except:
+        typing(msg.chat.id, "Format: /add 5 6")
+
+
+# ===== SUBTRACT =====
+@bot.message_handler(commands=['sub'])
+def sub_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        result = int(a) - int(b)
+        typing(msg.chat.id, f"Subtract = {result}")
+    except:
+        typing(msg.chat.id, "Format: /sub 10 3")
+
+
+# ===== MULTIPLY =====
+@bot.message_handler(commands=['mul'])
+def mul_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        result = int(a) * int(b)
+        typing(msg.chat.id, f"Multiply = {result}")
+    except:
+        typing(msg.chat.id, "Format: /mul 4 5")
+
+
+# ===== DIVIDE =====
+@bot.message_handler(commands=['div'])
+def div_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        if int(b) == 0:
+            typing(msg.chat.id, "Cannot divide by zero ❌")
+        else:
+            result = int(a) / int(b)
+            typing(msg.chat.id, f"Divide = {result}")
+    except:
+        typing(msg.chat.id, "Format: /div 10 2")
+
+
+# ===== SQUARE =====
+@bot.message_handler(commands=['square'])
+def square_cmd(msg):
+    try:
+        _, a = msg.text.split()
+        result = int(a) ** 2
+        typing(msg.chat.id, f"Square = {result}")
+    except:
+        typing(msg.chat.id, "Format: /square 5")
+
+
+# ===== CUBE =====
+@bot.message_handler(commands=['cube'])
+def cube_cmd(msg):
+    try:
+        _, a = msg.text.split()
+        result = int(a) ** 3
+        typing(msg.chat.id, f"Cube = {result}")
+    except:
+        typing(msg.chat.id, "Format: /cube 3")
+
+
+# ===== POWER =====
+@bot.message_handler(commands=['power'])
+def power_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        result = int(a) ** int(b)
+        typing(msg.chat.id, f"Power = {result}")
+    except:
+        typing(msg.chat.id, "Format: /power 2 5")
+
+
+# ===== MOD =====
+@bot.message_handler(commands=['mod'])
+def mod_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        result = int(a) % int(b)
+        typing(msg.chat.id, f"Modulus = {result}")
+    except:
+        typing(msg.chat.id, "Format: /mod 10 3")
+
+
+# ===== EVEN / ODD =====
+@bot.message_handler(commands=['even'])
+def even_cmd(msg):
+    try:
+        _, a = msg.text.split()
+        num = int(a)
+        if num % 2 == 0:
+            typing(msg.chat.id, f"{num} EVEN hai")
+        else:
+            typing(msg.chat.id, f"{num} ODD hai")
+    except:
+        typing(msg.chat.id, "Format: /even 8")
+
+
+# ===== PERCENT =====
+@bot.message_handler(commands=['percent'])
+def percent_cmd(msg):
+    try:
+        _, total, percent = msg.text.split()
+        result = (int(percent) / 100) * int(total)
+        typing(msg.chat.id, f"{percent}% of {total} = {result}")
+    except:
+        typing(msg.chat.id, "Format: /percent 200 10")
+
+
+# ===== PART 3: PRIME + FACTOR SYSTEM =====
+
+import math
+import time
+
+
+# ===== PRIME =====
+@bot.message_handler(commands=['prime'])
+def prime_cmd(msg):
+    try:
+        _, num = msg.text.split()
+        num = int(num)
+
+        start_time = time.time()
+
+        steps = []
+        factors = []
+        is_prime = False
+
+        if num <= 1:
+            steps.append("Number 1 ya usse chhota hai")
+
+        elif num == 2:
+            is_prime = True
+            steps.append("2 eklauta even prime hai")
+
+        elif num % 2 == 0:
+            factors.append(2)
+            steps.append("Even number hai → 2 se divide hota hai")
+
+        else:
+            is_prime = True
+            steps.append("Odd number → smart checking start")
+
+            for i in range(3, int(math.sqrt(num)) + 1, 2):
+                steps.append(f"{num} % {i} check")
+
+                if num % i == 0:
+                    is_prime = False
+                    factors.append(i)
+                    steps.append(f"{i} se divide ho gaya")
+                    break
+
+        end_time = time.time()
+
+        # ===== RESULT =====
+        if is_prime:
+            result_text = "✅ Prime Number\n👉 kisi bhi number se divide nahi hua"
+        else:
+            if factors:
+                result_text = f"❌ Not Prime\n👉 Factor mila: {factors[0]}"
+            else:
+                result_text = "❌ Not Prime"
+
+        # ===== STEPS =====
+        steps_text = "\n".join(steps[:10])
+
+        final = (
+            f"📊 RESULT:\n{result_text}\n\n"
+            f"🧠 Steps:\n{steps_text}\n\n"
+            f"⏱ Time: {round(end_time - start_time, 6)} sec"
+        )
+
+        typing(msg.chat.id, final)
+
+    except:
+        typing(msg.chat.id, "Format: /prime 17")
+
+
+# ===== FACTORS =====
+@bot.message_handler(commands=['factors'])
+def factors_cmd(msg):
+    try:
+        _, num = msg.text.split()
+        num = int(num)
+
+        factors = []
+        pairs = []
+
+        for i in range(1, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                factors.append(i)
+
+                if i != num // i:
+                    factors.append(num // i)
+
+                pairs.append((i, num // i))
+
+        factors.sort()
+
+        pair_text = "\n".join([f"{a} × {b} = {num}" for a, b in pairs])
+
+        final = (
+            f"📊 Factors: {factors}\n"
+            f"👉 Total: {len(factors)}\n\n"
+            f"🔗 Pairs:\n{pair_text}"
+        )
+
+        typing(msg.chat.id, final)
+
+    except:
+        typing(msg.chat.id, "Format: /factors 12")
+
+# ===== PART 4: PERCENTAGE + AVERAGE SYSTEM =====
+
+# ===== PERCENTAGE =====
+@bot.message_handler(commands=['percent_full'])
+def percent_full(msg):
+    try:
+        parts = msg.text.split()
+
+        if len(parts) < 2:
+            raise Exception
+
+        mode = parts[1]
+
+        # ----- MARKS -----
+        if mode == "marks":
+            total = int(parts[2])
+            obtained = int(parts[3])
+
+            percent = (obtained / total) * 100
+            percent = round(percent, 2)
+
+            typing(msg.chat.id, f"📊 Marks = {percent}%")
+
+        # ----- DISCOUNT -----
+        elif mode == "discount":
+            total = int(parts[2])
+            paid = int(parts[3])
+
+            discount = total - paid
+            percent = (discount / total) * 100
+            percent = round(percent, 2)
+
+            typing(msg.chat.id, f"💸 Discount = {percent}%")
+
+        # ----- PROFIT / LOSS -----
+        elif mode == "profit":
+            buy = int(parts[2])
+            sell = int(parts[3])
+
+            diff = sell - buy
+            percent = (abs(diff) / buy) * 100
+            percent = round(percent, 2)
+
+            if diff > 0:
+                typing(msg.chat.id, f"💰 Profit = {percent}%")
+            elif diff < 0:
+                typing(msg.chat.id, f"📉 Loss = {percent}%")
+            else:
+                typing(msg.chat.id, "No profit no loss")
+
+        # ----- DIRECT -----
+        elif mode == "direct":
+            value = int(parts[2])
+            per = int(parts[3])
+
+            result = (per / 100) * value
+            typing(msg.chat.id, f"{per}% of {value} = {result}")
+
+        else:
+            typing(msg.chat.id, "Invalid mode")
+
+    except:
+        typing(msg.chat.id,
+        "Format:\n"
+        "/percent_full marks 500 400\n"
+        "/percent_full discount 1000 800\n"
+        "/percent_full profit 100 120\n"
+        "/percent_full direct 200 10"
+        )
+
+
+# ===== AVERAGE =====
+@bot.message_handler(commands=['average'])
+def average_cmd(msg):
+    try:
+        parts = msg.text.split()
+
+        nums = list(map(int, parts[1:]))
+
+        avg = sum(nums) / len(nums)
+        avg = round(avg, 2)
+
+        typing(msg.chat.id, f"📊 Average = {avg}")
+
+    except:
+        typing(msg.chat.id, "Format: /average 10 20 30")
+
+
+# ===== WEIGHTED AVERAGE =====
+@bot.message_handler(commands=['wavg'])
+def weighted_avg(msg):
+    try:
+        parts = msg.text.split()
+
+        values = list(map(int, parts[1::2]))
+        weights = list(map(int, parts[2::2]))
+
+        total = sum(v * w for v, w in zip(values, weights))
+        total_weight = sum(weights)
+
+        if total_weight == 0:
+            typing(msg.chat.id, "Weight zero nahi ho sakta ❌")
+            return
+
+        result = total / total_weight
+        result = round(result, 2)
+
+        typing(msg.chat.id, f"📊 Weighted Average = {result}")
+
+    except:
+        typing(msg.chat.id,
+        "Format:\n/wavg 10 2 20 3\n(value weight pairs)"
+            )
+
+# ===== PART 5: GCD / LCM + ADVANCED MATH =====
+
+import math
+
+
+# ===== GCD / LCM =====
+@bot.message_handler(commands=['gcd'])
+def gcd_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        a = int(a)
+        b = int(b)
+
+        gcd = math.gcd(a, b)
+
+        typing(msg.chat.id, f"🔢 GCD({a}, {b}) = {gcd}")
+
+    except:
+        typing(msg.chat.id, "Format: /gcd 12 18")
+
+
+@bot.message_handler(commands=['lcm'])
+def lcm_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        a = int(a)
+        b = int(b)
+
+        lcm = (a * b) // math.gcd(a, b)
+
+        typing(msg.chat.id, f"🔢 LCM({a}, {b}) = {lcm}")
+
+    except:
+        typing(msg.chat.id, "Format: /lcm 12 18")
+
+
+@bot.message_handler(commands=['gcdlcm'])
+def both_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        a = int(a)
+        b = int(b)
+
+        gcd = math.gcd(a, b)
+        lcm = (a * b) // gcd
+
+        typing(msg.chat.id,
+        f"🔢 GCD = {gcd}\n🔢 LCM = {lcm}"
+        )
+
+    except:
+        typing(msg.chat.id, "Format: /gcdlcm 12 18")
+
+
+# ===== FACTORIAL =====
+@bot.message_handler(commands=['fact'])
+def fact_cmd(msg):
+    try:
+        _, n = msg.text.split()
+        n = int(n)
+
+        if n < 0:
+            typing(msg.chat.id, "Factorial not possible ❌")
+            return
+
+        result = math.factorial(n)
+
+        typing(msg.chat.id, f"{n}! = {result}")
+
+    except:
+        typing(msg.chat.id, "Format: /fact 5")
+
+
+# ===== RANGE SUM =====
+@bot.message_handler(commands=['sum'])
+def sum_cmd(msg):
+    try:
+        _, a, b = msg.text.split()
+        a = int(a)
+        b = int(b)
+
+        result = sum(range(a, b + 1))
+
+        typing(msg.chat.id, f"Sum {a} to {b} = {result}")
+
+    except:
+        typing(msg.chat.id, "Format: /sum 1 10")
+
+
+# ===== MULTIPLES =====
+@bot.message_handler(commands=['multiples'])
+def multiples_cmd(msg):
+    try:
+        _, num, limit = msg.text.split()
+        num = int(num)
+        limit = int(limit)
+
+        result = [num * i for i in range(1, limit + 1)]
+
+        typing(msg.chat.id, f"Multiples of {num}:\n{result}")
+
+    except:
+        typing(msg.chat.id, "Format: /multiples 5 10")
+
+# ===== PART 6: LIFE SYSTEM =====
+
+# ===== DAILY LIFE =====
+@bot.message_handler(commands=['daily'])
+def daily_cmd(msg):
+    typing(msg.chat.id,
+    "🧠 DAILY LIFE SYSTEM\n"
+    "Try:\n"
+    "student / business / morning / night / sad / focus"
+    )
+
+
+# ===== FITNESS =====
+@bot.message_handler(commands=['fitness'])
+def fitness_cmd(msg):
+    typing(msg.chat.id,
+    "💪 FITNESS SYSTEM\n"
+    "Try:\n"
+    "weight loss / gain / home workout / gym / yoga / diet"
+    )
+
+
+# ===== STUDY =====
+@bot.message_handler(commands=['study'])
+def study_cmd(msg):
+    typing(msg.chat.id,
+    "📚 STUDY SYSTEM\n"
+    "Try:\n"
+    "focus / exam / revision / timetable / motivation"
+    )
+
+
+# ===== EARNING =====
+@bot.message_handler(commands=['earn'])
+def earn_cmd(msg):
+    typing(msg.chat.id,
+    "💰 ONLINE EARNING\n"
+    "Try:\n"
+    "start / freelancing / youtube / affiliate / skill"
+    )
+
+
+# ===== YOUTUBE =====
+@bot.message_handler(commands=['youtube'])
+def yt_cmd(msg):
+    typing(msg.chat.id,
+    "🎬 YOUTUBE GROWTH\n"
+    "Try:\n"
+    "start / shorts / viral / editing / title / growth"
+    )
+
+
+# ===== EDITING =====
+@bot.message_handler(commands=['edit'])
+def edit_cmd(msg):
+    typing(msg.chat.id,
+    "✂️ EDITING SYSTEM\n"
+    "Try:\n"
+    "basic / shorts / advanced / text / sound / color"
+    )
+
+
+# ===== SMART RESPONSE SYSTEM =====
+@bot.message_handler(func=lambda msg: True)
+def life_handler(msg):
+    text = msg.text.lower()
+    chat_id = msg.chat.id
+
+    # DAILY LIFE
+    if "student" in text:
+        typing(chat_id, "🎓 Student Mode:\nConsistency = success 💀")
+
+    elif "business" in text:
+        typing(chat_id, "💼 Business Mode:\nSkill + system = income 💰")
+
+    elif "morning" in text:
+        typing(chat_id, "🌅 Morning:\nWake up + exercise + plan")
+
+    elif "night" in text:
+        typing(chat_id, "🌙 Night:\nReview + plan + sleep")
+
+    elif "sad" in text:
+        typing(chat_id, "😔 Relax...\nYe temporary hai 💪")
+
+    elif "focus" in text:
+        typing(chat_id, "🎯 Focus:\nPhone door + deep work")
+
+    # FITNESS
+    elif "weight loss" in text:
+        typing(chat_id, "🔥 Fat loss:\nRun + clean diet")
+
+    elif "gym" in text:
+        typing(chat_id, "🏋 Gym:\nConsistency + protein")
+
+    # STUDY
+    elif "exam" in text:
+        typing(chat_id, "📝 Exam:\nPYQ + revision")
+
+    elif "revision" in text:
+        typing(chat_id, "🔁 Repeat = memory strong")
+
+    # EARNING
+    elif "freelance" in text:
+        typing(chat_id, "💻 Freelancing:\nSkill sell karo")
+
+    elif "youtube" in text:
+        typing(chat_id, "🎬 YouTube:\nDaily upload")
+
+    # EDITING
+    elif "editing" in text:
+        typing(chat_id, "✂️ Editing:\nFast cut + text")
+
+    else:
+        typing(chat_id, "🤖 Samajh nahi aaya\nType /help")
+
+# ===== FINAL BOT (PART 7 MERGED) =====
+
+import telebot
+import time
+import random
+import math
+
+TOKEN = "YOUR_BOT_TOKEN_HERE"
+bot = telebot.TeleBot(TOKEN)
+
+memory = {}
+
+# ===== TYPING EFFECT =====
+def typing(chat_id, text):
+    bot.send_chat_action(chat_id, "typing")
+    time.sleep(1)
+    bot.send_message(chat_id, text)
+
+
+# ===== START =====
+@bot.message_handler(commands=['start'])
+def start(msg):
+    typing(msg.chat.id, "🔥 Welcome Gurudev\nType /help")
+
+
+# ===== HELP =====
+@bot.message_handler(commands=['help'])
+def help_cmd(msg):
+    typing(msg.chat.id,
+    "📌 Commands:\n"
+    "/chat /calc /prime /factors\n"
+    "/percent_full /average /wavg\n"
+    "/gcd /lcm /fact /sum /multiples\n"
+    "/daily /fitness /study /earn /youtube /edit"
+    )
+
+
+# ===== MAIN HANDLER =====
+@bot.message_handler(func=lambda msg: True)
+def handle(msg):
+    text = msg.text.lower()
+    chat_id = msg.chat.id
+
+    # ===== CHAT =====
     if text in ["hi","hello","hey"]:
-        await send(update,"hello")
+        typing(chat_id,"hello 😎")
 
     elif "my name" in text:
         name = text.replace("my name","").strip()
-        memory.setdefault(uid,{})["name"] = name
-        await send(update,f"hello {name}")
+        memory[chat_id] = {"name":name}
+        typing(chat_id,f"hello {name}")
 
     elif text == "what is my name":
-        await send(update, memory.get(uid,{}).get("name","None"))
+        name = memory.get(chat_id,{}).get("name","unknown")
+        typing(chat_id,f"your name is {name}")
 
-    elif "my city" in text:
-        city = text.replace("my city","").strip()
-        memory.setdefault(uid,{})["city"] = city
-        await send(update,"city saved ✔")
+    # ===== CALCULATOR SHORT =====
+    elif text.startswith("/add"):
+        try:
+            _,a,b = text.split()
+            typing(chat_id,f"{int(a)+int(b)}")
+        except:
+            typing(chat_id,"/add 5 6")
 
-    elif text == "what is my city":
-        await send(update, memory.get(uid,{}).get("city","None"))
+    elif text.startswith("/sub"):
+        try:
+            _,a,b = text.split()
+            typing(chat_id,f"{int(a)-int(b)}")
+        except:
+            typing(chat_id,"/sub 10 3")
 
-    # ===== CALCULATOR SYSTEM (FULL) =====
-async def calc_system(update, text):
-
-    try:
-        # ===== BASIC OPERATIONS =====
-        if any(op in text for op in ["+","-","*","/","%","**"]):
-            result = eval(text)
-            await send(update,f"Result = {result}")
-
-        # ===== EVEN / ODD =====
-        elif text.startswith("even"):
-            num = int(text.split()[-1])
-            if num % 2 == 0:
-                await send(update,f"{num} EVEN hai")
-            else:
-                await send(update,f"{num} ODD hai")
-
-        # ===== FACTORIAL =====
-        elif text.startswith("fact"):
-            num = int(text.split()[-1])
-            if num < 0:
-                await send(update,"Factorial not possible")
-            else:
-                fact = 1
-                for i in range(1, num+1):
-                    fact *= i
-                await send(update,f"Factorial = {fact}")
-
-        # ===== POWER =====
-        elif text.startswith("power"):
-            parts = text.split()
-            num1 = int(parts[1])
-            num2 = int(parts[2])
-            await send(update,f"Power = {num1**num2}")
-
-        # ===== MODULUS =====
-        elif text.startswith("mod"):
-            parts = text.split()
-            num1 = int(parts[1])
-            num2 = int(parts[2])
-            if num2 == 0:
-                await send(update,"cannot divide by zero")
-            else:
-                await send(update,f"Modulus = {num1 % num2}")
-
-        # ===== AVERAGE =====
-        elif text.startswith("avg"):
-            nums = list(map(int, text.split()[1:]))
-            avg = sum(nums)/len(nums)
-            await send(update,f"Average = {round(avg,2)}")
-
-        # ===== WEIGHTED AVERAGE =====
-        elif text.startswith("wavg"):
-            parts = list(map(int,text.split()[1:]))
-            values = parts[::2]
-            weights = parts[1::2]
-
-            total = sum(v*w for v,w in zip(values,weights))
-            total_w = sum(weights)
-
-            if total_w == 0:
-                await send(update,"Weight zero nahi ho sakta")
-            else:
-                result = total/total_w
-                await send(update,f"Weighted Average = {round(result,2)}")
-
-        # ===== GCD / LCM =====
-        elif text.startswith("gcd"):
-            a,b = map(int,text.split()[1:3])
-            x,y = a,b
-            while y:
-                x,y = y,x%y
-            gcd = x
-            lcm = (a*b)//gcd
-            await send(update,f"GCD = {gcd}\nLCM = {lcm}")
-
-        # ===== PRIME =====
-        elif text.startswith("prime"):
-            num = int(text.split()[-1])
+    # ===== PRIME =====
+    elif text.startswith("/prime"):
+        try:
+            _,num = text.split()
+            num = int(num)
 
             if num <= 1:
-                await send(update,"Not Prime")
-            else:
-                is_prime = True
-                for i in range(2,int(num**0.5)+1):
-                    if num%i==0:
-                        is_prime=False
-                        break
+                typing(chat_id,"Not Prime")
+                return
 
-                await send(update,"Prime" if is_prime else "Not Prime")
+            for i in range(2,int(math.sqrt(num))+1):
+                if num % i == 0:
+                    typing(chat_id,"Not Prime")
+                    return
 
-        # ===== FACTORS =====
-        elif text.startswith("factors"):
-            num = int(text.split()[-1])
-            factors = []
+            typing(chat_id,"Prime Number")
 
-            for i in range(1,int(num**0.5)+1):
-                if num%i==0:
-                    factors.append(i)
-                    if i != num//i:
-                        factors.append(num//i)
+        except:
+            typing(chat_id,"/prime 17")
 
-            factors.sort()
-            await send(update,f"Factors: {factors}")
+    # ===== FACTORS =====
+    elif text.startswith("/factors"):
+        try:
+            _,num = text.split()
+            num = int(num)
 
-        # ===== PERCENTAGE BASIC =====
-        elif text.startswith("percent"):
-            parts = list(map(int,text.split()[1:]))
-            total, part = parts
-            percent = (part/total)*100
-            await send(update,f"{round(percent,2)}%")
+            fac = [i for i in range(1,num+1) if num%i==0]
+            typing(chat_id,str(fac))
 
-        else:
-            await send(update,
-            "Examples:\n"
-            "5+3\n"
-            "fact 5\n"
-            "even 4\n"
-            "power 2 3\n"
-            "avg 1 2 3\n"
-            "gcd 10 20\n"
-            "prime 7\n"
-            "factors 12")
+        except:
+            typing(chat_id,"/factors 12")
 
-    except:
-        await send(update,"Invalid input ❌")
+    # ===== PERCENT =====
+    elif text.startswith("/percent"):
+        try:
+            _,value,per = text.split()
+            result = (int(per)/100)*int(value)
+            typing(chat_id,str(result))
+        except:
+            typing(chat_id,"/percent 200 10")
 
-    elif text in ["how are you","kaise ho","kemon acho","kaisi ho","valo acho"]:
-        await send(update,"fine and you")
+    # ===== GCD =====
+    elif text.startswith("/gcd"):
+        try:
+            _,a,b = text.split()
+            typing(chat_id,str(math.gcd(int(a),int(b))))
+        except:
+            typing(chat_id,"/gcd 12 18")
 
-    elif text in ["by","bye","tc","tata"]:
-        await send(update,"by friend fir milenge")
+    # ===== FACTORIAL =====
+    elif text.startswith("/fact"):
+        try:
+            _,n = text.split()
+            typing(chat_id,str(math.factorial(int(n))))
+        except:
+            typing(chat_id,"/fact 5")
 
-    elif "kaise ho" in text:
-        await send(update,"main badhiya hu 😎 tum batao")
-
-    elif "kya kar rahe ho" in text:
-        await send(update,"tumse baat kar raha hu 😄")
-
-    elif "tum kaun ho" in text:
-        await send(update,"main ek smart python bot hu 💀")
-
-    elif "help" in text:
-        replies = [
-            "what problem dear🤔",
-            "kya chahiye tumhe🙄",
-            "help kya chahiye tymhe 🤔"
-        ]
-        await send(update, random.choice(replies))
-
-    else:
-        replies = [
-            "thoda aur clear bolo 🤔",
-            "samajhne ki koshish kar raha hu 😅",
-            "ye thoda alag hai, fir bolo 😄",
-            "samajh nahi aaya, simple bolo 😎"
-        ]
-        await send(update, random.choice(replies))
-
-
-# ===== DAILY LIFE SYSTEM =====
-async def life_system(update, text):
-
-    if any(word in text for word in ["student","study","padhai"]):
-        await send(update,
-        "🎓 STUDENT MODE\n\n"
-        "⏰ 5:30 AM - Utho\n"
-        "🧘 Meditation\n"
-        "📚 Hard subject\n"
-        "🔁 Revision\n"
-        "🏃 Exercise\n"
-        "🌙 Sleep\n\n"
-        "👉 Consistency > Motivation")
-
-    elif any(word in text for word in ["business","work","job"]):
-        await send(update,
-        "💼 BUSINESS MODE\n\n"
-        "⏰ Early wake\n"
-        "📊 Planning\n"
-        "📞 Work\n"
-        "📈 Growth\n"
-        "💡 Learning\n\n"
-        "👉 Income = Skill × Consistency")
-
-    elif "morning" in text:
-        await send(update,
-        "🌅 MORNING ROUTINE\n"
-        "👉 Utho\n👉 Pani\n👉 Exercise\n👉 Meditation\n👉 Plan")
-
-    elif "night" in text:
-        await send(update,
-        "🌙 NIGHT ROUTINE\n"
-        "👉 Phone band\n👉 Review\n👉 Plan\n👉 Gratitude\n👉 Sleep")
-
-    elif any(word in text for word in ["bore","bored"]):
-        await send(update,
-        "😐 Bored?\n👉 Walk\n👉 Music\n👉 Learn something\n\n👉 Growth signal")
-
-    elif any(word in text for word in ["sad","dukhi","mood off"]):
-        await send(update,
-        "😔 Temporary hai\n👉 Walk\n👉 Breathe\n👉 Talk\n\n👉 Tum strong ho 💪")
-
-    elif "focus" in text:
-        await send(update,
-        "🎯 Focus Mode\n👉 Phone door\n👉 25 min\n👉 Single task")
-
-    elif any(word in text for word in ["motivation","lazy"]):
-        await send(update,
-        "🔥 Discipline > Motivation\n👉 Daily improve")
-
-    elif "tired" in text:
-        await send(update,
-        "😴 Rest lo\n👉 Water\n👉 Relax")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nstudent\nbusiness\nmorning\nnight\nbored\nsad\nfocus")
-
-    else:
-        await send(update,"Samajh nahi aaya 🤖")
-
-
-# ===== HEALTH SYSTEM =====
-async def health_system(update, text):
-
-    if any(word in text for word in ["weight loss","fat","motapa"]):
-        await send(update,
-        "🔥 Weight Loss\n🏃 Walk\n🥗 Diet\n💧 Water\n👉 Consistency")
-
-    elif any(word in text for word in ["weight gain","patla"]):
-        await send(update,
-        "💪 Weight Gain\n🍌 Banana\n🥛 Milk\n🍚 High calories")
-
-    elif any(word in text for word in ["home","ghar"]):
-        await send(update,
-        "🏠 Home Workout\n👉 Pushup\n👉 Squat\n👉 Plank")
+    # ===== LIFE SYSTEM =====
+    elif "student" in text:
+        typing(chat_id,"🎓 Study hard 💀")
 
     elif "gym" in text:
-        await send(update,
-        "🏋 Gym\n👉 Split workout\n👉 Protein\n👉 Form")
+        typing(chat_id,"🏋 Gym + diet")
 
-    elif any(word in text for word in ["yoga","meditation"]):
-        await send(update,
-        "🧘 Yoga\n👉 Pranayam\n👉 Breathing\n👉 Calm mind")
-
-    elif any(word in text for word in ["diet","food"]):
-        await send(update,
-        "🥗 Diet\n👉 Protein\n👉 Fruits\n👉 Less junk")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nweight loss\ngain\nhome\ngym\nyoga\ndiet")
-
-    else:
-        await send(update,"Healthy raho 💪")
-
-
-        # ===== STUDY SYSTEM =====
-async def study_system(update, text):
-
-    if any(word in text for word in ["focus","padhai","study"]):
-        await send(update,
-        "🎯 FOCUS MODE\n\n"
-        "👉 Phone door\n"
-        "👉 25 min (Pomodoro)\n"
-        "👉 Ek subject\n"
-        "👉 Break\n\n"
-        "👉 Deep work = success")
-
-    elif any(word in text for word in ["exam","test","paper"]):
-        await send(update,
-        "📝 EXAM MODE\n\n"
-        "👉 Important topics\n"
-        "👉 PYQ solve\n"
-        "👉 Time manage\n\n"
-        "👉 Smart study > Hard")
-
-    elif any(word in text for word in ["revision","revise"]):
-        await send(update,
-        "🔁 REVISION\n\n"
-        "👉 1 din baad\n"
-        "👉 3 din baad\n"
-        "👉 7 din baad\n\n"
-        "👉 Repeat = memory strong")
-
-    elif any(word in text for word in ["time table","routine","plan"]):
-        await send(update,
-        "⏰ TIME TABLE\n\n"
-        "5:30 Wake\n"
-        "6–8 Hard subject\n"
-        "10–1 Study\n"
-        "4–6 Revision\n"
-        "10 Sleep")
-
-    elif any(word in text for word in ["motivation","lazy"]):
-        await send(update,
-        "🔥 STUDY MOTIVATION\n\n"
-        "👉 Aaj padhoge kal jeetoge\n"
-        "👉 Discipline > Mood")
-
-    elif any(word in text for word in ["math","science","english"]):
-        await send(update,
-        "📖 SUBJECT\n\n"
-        "Math → Practice\n"
-        "Science → Concept\n"
-        "English → Reading")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nfocus\nexam\nrevision\ntime table\nmotivation")
-
-    else:
-        await send(update,"Study karo 📚")
-
-
-# ===== EARNING SYSTEM =====
-async def earning_system(update, text):
-
-    if any(word in text for word in ["start","beginner"]):
-        await send(update,
-        "🚀 START EARNING\n\n"
-        "👉 Skill sikho\n"
-        "👉 Daily kaam\n"
-        "👉 Free tools\n\n"
-        "👉 Skill = money")
-
-    elif any(word in text for word in ["freelance","client"]):
-        await send(update,
-        "💻 FREELANCING\n\n"
-        "👉 Fiverr\n"
-        "👉 Upwork\n"
-        "👉 Small start")
+    elif "exam" in text:
+        typing(chat_id,"📚 Revision + PYQ")
 
     elif "youtube" in text:
-        await send(update,
-        "🎬 YOUTUBE\n\n"
-        "👉 Daily upload\n"
-        "👉 Shorts + long\n"
-        "👉 Consistency")
-
-    elif any(word in text for word in ["affiliate","product"]):
-        await send(update,
-        "🛒 AFFILIATE\n\n"
-        "👉 Product sell\n"
-        "👉 Link share\n"
-        "👉 Commission")
-
-    elif any(word in text for word in ["content","reel","shorts"]):
-        await send(update,
-        "📱 CONTENT\n\n"
-        "👉 Reels banao\n"
-        "👉 Trending use\n"
-        "👉 Daily post")
-
-    elif any(word in text for word in ["skill","coding","editing"]):
-        await send(update,
-        "🧠 SKILL\n\n"
-        "👉 Coding\n"
-        "👉 Editing\n"
-        "👉 Design\n\n"
-        "👉 High skill = high income")
-
-    elif any(word in text for word in ["mindset","lazy"]):
-        await send(update,
-        "🧠 MINDSET\n\n"
-        "👉 Consistency\n"
-        "👉 Daily work\n"
-        "👉 Patience\n\n"
-        "👉 6 mahine me result")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nstart\nfreelance\nyoutube\naffiliate\ncontent\nskill")
+        typing(chat_id,"🎬 Daily upload")
 
     else:
-        await send(update,"Earn karna hai to skill build karo 💰")
-
-# ===== YOUTUBE SYSTEM =====
-async def yt_system(update, text):
-
-    if any(word in text for word in ["start","channel","begin"]):
-        await send(update,
-        "🚀 START YOUTUBE\n\n"
-        "👉 Niche choose karo\n"
-        "👉 Daily upload\n"
-        "👉 Overthinking mat karo\n\n"
-        "👉 Start fast")
-
-    elif any(word in text for word in ["shorts","reel"]):
-        await send(update,
-        "🔥 SHORTS\n\n"
-        "👉 10–20 sec\n"
-        "👉 Hook strong\n"
-        "👉 Fast edit\n\n"
-        "👉 Fast growth")
-
-    elif any(word in text for word in ["viral","views"]):
-        await send(update,
-        "💀 VIRAL\n\n"
-        "👉 Hook + Emotion\n"
-        "👉 Trend use\n"
-        "👉 Repeat content")
-
-    elif any(word in text for word in ["edit","editing"]):
-        await send(update,
-        "✂️ EDITING\n\n"
-        "👉 Fast cuts\n"
-        "👉 Text\n"
-        "👉 Sound\n\n"
-        "👉 Retention boost")
-
-    elif any(word in text for word in ["title","thumbnail"]):
-        await send(update,
-        "🧲 TITLE + THUMB\n\n"
-        "👉 Curiosity\n"
-        "👉 Numbers\n"
-        "👉 Simple")
-
-    elif any(word in text for word in ["grow","subscriber"]):
-        await send(update,
-        "📈 GROWTH\n\n"
-        "👉 Consistency\n"
-        "👉 Quality\n"
-        "👉 Patience\n\n"
-        "👉 100 video rule")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nstart\nshorts\nviral\nediting\ntitle\ngrowth")
-
-    else:
-        await send(update,"YouTube pe consistency rakho 🎬")
+        typing(chat_id,"🤖 Unknown command\nType /help")
 
 
-# ===== EDITING SYSTEM =====
-async def edit_system(update, text):
-
-    if any(word in text for word in ["basic","start"]):
-        await send(update,
-        "🎬 BASIC EDITING\n\n"
-        "👉 Cut\n"
-        "👉 Trim\n"
-        "👉 Simple text\n\n"
-        "👉 Clean video best")
-
-    elif any(word in text for word in ["shorts","reel"]):
-        await send(update,
-        "🔥 SHORTS EDIT\n\n"
-        "👉 Fast cuts\n"
-        "👉 Zoom\n"
-        "👉 Subtitle\n\n"
-        "👉 Hook first")
-
-    elif any(word in text for word in ["advanced","pro"]):
-        await send(update,
-        "🎥 ADVANCED\n\n"
-        "👉 Transition\n"
-        "👉 Motion\n"
-        "👉 Slowmo")
-
-    elif any(word in text for word in ["text","subtitle"]):
-        await send(update,
-        "📝 TEXT\n\n"
-        "👉 Bold\n"
-        "👉 Short line\n"
-        "👉 Highlight")
-
-    elif any(word in text for word in ["sound","music"]):
-        await send(update,
-        "🔊 SOUND\n\n"
-        "👉 Music\n"
-        "👉 Effect\n"
-        "👉 Beat sync")
-
-    elif any(word in text for word in ["color","filter"]):
-        await send(update,
-        "🎨 COLOR\n\n"
-        "👉 Brightness\n"
-        "👉 Contrast\n"
-        "👉 Natural look")
-
-    elif "help" in text:
-        await send(update,
-        "Commands:\nbasic\nshorts\nadvanced\ntext\nsound\ncolor")
-
-    else:
-        await send(update,"Editing improve karo ✂️")
-
-# ===== MAIN HANDLER =====
-async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uid = update.message.from_user.id
-    text = update.message.text.lower()
-
-    modes = {
-        "1":"chat",
-        "2":"calc",
-        "3":"life",
-        "4":"health",
-        "5":"study",
-        "6":"earn",
-        "7":"yt",
-        "8":"edit"
-    }
-
-    # ===== MODE SELECT =====
-    if text in modes:
-        user_mode[uid] = modes[text]
-        return await send(update, f"✅ {modes[text]} mode ON")
-
-    mode = user_mode.get(uid)
-
-    # ===== ROUTING =====
-    if mode == "chat":
-        await chat_system(update, text, uid)
-
-    elif mode == "calc":
-        await calc_system(update, text)
-
-    elif mode == "life":
-        await life_system(update, text)
-
-    elif mode == "health":
-        await health_system(update, text)
-
-    elif mode == "study":
-        await study_system(update, text)
-
-    elif mode == "earn":
-        await earning_system(update, text)
-
-    elif mode == "yt":
-        await yt_system(update, text)
-
-    elif mode == "edit":
-        await edit_system(update, text)
-
-    else:
-        await send(update, "👉 /start likho pehle")
-
-
-# ===== RUN BOT =====
-app = ApplicationBuilder().token(TOKEN).build()
-
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT, handle))
-
-print("✅ BOT RUNNING...")
-app.run_polling()
+print("🔥 FINAL BOT RUNNING...")
+bot.infinity_polling()
